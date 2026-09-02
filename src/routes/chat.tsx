@@ -82,6 +82,8 @@ function Chat() {
       .from("messages")
       .insert({ body: text, author_id: profile.id });
     if (err) setError("Message could not be sent.");
+    else await load();
+
   }
 
   return (
