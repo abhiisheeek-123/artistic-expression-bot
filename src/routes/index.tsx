@@ -72,7 +72,11 @@ function Feed() {
       .from("posts")
       .insert({ body: body.trim(), author_id: profile.id });
     if (err) setError("Your post could not be published.");
-    else setBody("");
+    else {
+      setBody("");
+      await load();
+    }
+
     setBusy(false);
   }
 
