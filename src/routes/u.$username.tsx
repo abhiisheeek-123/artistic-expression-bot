@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { ErrorNote, PostCard, PostSkeleton, type PostRow } from "@/components/PostCard";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/u/$username")({
   component: ProfilePage,
@@ -28,6 +29,8 @@ function ProfilePage() {
 
 function Profile() {
   const { username } = Route.useParams();
+  const { profile: me, isAdmin } = useAuth();
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [posts, setPosts] = useState<PostRow[] | null>(null);
   const [exists, setExists] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +51,10 @@ function Profile() {
         return;
       }
       setExists(true);
+      setProfileId(profile.id);
       const { data, error: err } = await supabase
         .from("posts")
-        .select("id, body, created_at, profiles(username)")
+        .select("id, body, created_at, author_id, profiles(username)")
         .eq("author_id", profile.id)
         .order("created_at", { ascending: false });
       if (cancelled) return;
@@ -67,6 +71,15 @@ function Profile() {
       <header className="mb-6 border-b border-border pb-5">
         <h1 className="text-2xl font-bold tracking-tight">{username}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Posts by @{username}</p>
+        {profileId && me && profileId !== me.id && (
+          <Link
+            to="/dm/$username"
+            params={{ username }}
+            className="btn-primary mt-3 inline-block text-sm hover:opacity-90"
+          >
+            Send private message
+          </Link>
+        )}
       </header>
 
       {!exists ? (
@@ -83,7 +96,18 @@ function Profile() {
       ) : (
         <div className="space-y-4">
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard
+              key={post.id}
+              post={post}
+              onDelete={
+                isAdmin || post.author_id === me?.id
+                  ? async (id) => {
+                      await supabase.from("posts").delete().eq("id", id);
+                      setPosts((prev) => (prev ?? []).filter((p) => p.id !== id));
+                    }
+                  : undefined
+              }
+            />
           ))}
         </div>
       )}
