@@ -7,6 +7,7 @@ export type Profile = { id: string; username: string };
 type AuthValue = {
   session: Session | null;
   profile: Profile | null;
+  isAdmin: boolean;
   loading: boolean;
   signUp: (username: string, password: string) => Promise<void>;
   signIn: (username: string, password: string) => Promise<void>;
@@ -28,12 +29,16 @@ function emailFor(username: string) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
-      if (!next) setProfile(null);
+      if (!next) {
+        setProfile(null);
+        setIsAdmin(false);
+      }
     });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -59,9 +64,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [session?.user.id]);
 
+  useEffect(() => {
+    const userId = session?.user.id;
+    if (!userId) {
+      setIsAdmin(false);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .rpc("has_role", { _user_id: userId, _role: "admin" })
+      .then(({ data }) => {
+        if (!cancelled) setIsAdmin(data === true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user.id]);
+
   const value: AuthValue = {
     session,
     profile,
+    isAdmin,
     loading,
     async signUp(username, password) {
       const clean = normalizeUsername(username);

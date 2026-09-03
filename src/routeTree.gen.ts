@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as DmIndexRouteImport } from './routes/dm.index'
+import { Route as DmUsernameRouteImport } from './routes/dm.$username'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +31,16 @@ const ChatRoute = ChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DmIndexRoute = DmIndexRouteImport.update({
+  id: '/dm/',
+  path: '/dm/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DmUsernameRoute = DmUsernameRouteImport.update({
+  id: '/dm/$username',
+  path: '/dm/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UUsernameRoute = UUsernameRouteImport.update({
   id: '/u/$username',
   path: '/u/$username',
@@ -39,34 +51,49 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
+  '/dm/$username': typeof DmUsernameRoute
   '/u/$username': typeof UUsernameRoute
+  '/dm/': typeof DmIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
+  '/dm/$username': typeof DmUsernameRoute
   '/u/$username': typeof UUsernameRoute
+  '/dm': typeof DmIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chat': typeof ChatRoute
+  '/dm/$username': typeof DmUsernameRoute
   '/u/$username': typeof UUsernameRoute
+  '/dm/': typeof DmIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/chat' | '/u/$username'
+  fullPaths: '/' | '/auth' | '/chat' | '/dm/$username' | '/u/$username' | '/dm/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/chat' | '/u/$username'
-  id: '__root__' | '/' | '/auth' | '/chat' | '/u/$username'
+  to: '/' | '/auth' | '/chat' | '/dm/$username' | '/u/$username' | '/dm'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/chat'
+    | '/dm/$username'
+    | '/u/$username'
+    | '/dm/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   ChatRoute: typeof ChatRoute
+  DmUsernameRoute: typeof DmUsernameRoute
   UUsernameRoute: typeof UUsernameRoute
+  DmIndexRoute: typeof DmIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +119,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dm/': {
+      id: '/dm/'
+      path: '/dm'
+      fullPath: '/dm/'
+      preLoaderRoute: typeof DmIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dm/$username': {
+      id: '/dm/$username'
+      path: '/dm/$username'
+      fullPath: '/dm/$username'
+      preLoaderRoute: typeof DmUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/u/$username': {
       id: '/u/$username'
       path: '/u/$username'
@@ -106,7 +147,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   ChatRoute: ChatRoute,
+  DmUsernameRoute: DmUsernameRoute,
   UUsernameRoute: UUsernameRoute,
+  DmIndexRoute: DmIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
