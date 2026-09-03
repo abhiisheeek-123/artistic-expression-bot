@@ -7,6 +7,7 @@ export type Profile = { id: string; username: string };
 type AuthValue = {
   session: Session | null;
   profile: Profile | null;
+  isAdmin: boolean;
   loading: boolean;
   signUp: (username: string, password: string) => Promise<void>;
   signIn: (username: string, password: string) => Promise<void>;
@@ -28,6 +29,7 @@ function emailFor(username: string) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
