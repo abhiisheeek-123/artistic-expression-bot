@@ -5,11 +5,12 @@ import { useAuth } from "@/lib/auth";
 
 const tabs = [
   { label: "Feed", to: "/" },
-  { label: "Chat", to: "/chat" },
+  { label: "Public", to: "/chat" },
+  { label: "Private", to: "/dm" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { session, profile, loading, signOut } = useAuth();
+  const { session, profile, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -36,6 +37,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             <img src={logo.url} alt="Chatigram" className="h-7 w-7 rounded" />
             <span className="text-[15px] font-bold tracking-tight">Chatigram</span>
           </Link>
+          {isAdmin && (
+            <span className="rounded border border-primary/50 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
+              Admin
+            </span>
+          )}
 
           <nav className="ml-auto hidden items-center gap-1 sm:flex">
             {navItems.map((item) => {
