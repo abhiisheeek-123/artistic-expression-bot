@@ -14,7 +14,7 @@ export function PostCard({
   onDelete,
 }: {
   post: PostRow;
-  onDelete?: (id: string) => void;
+  onDelete?: ((id: string) => void) | undefined;
 }) {
   const username = post.profiles?.username ?? "unknown";
   return (
