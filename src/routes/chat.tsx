@@ -29,6 +29,7 @@ type MessageRow = {
   id: string;
   body: string;
   created_at: string;
+  author_id: string;
   profiles: { username: string } | null;
 };
 
@@ -41,7 +42,7 @@ function ChatPage() {
 }
 
 function Chat() {
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
   const [messages, setMessages] = useState<MessageRow[] | null>(null);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +51,7 @@ function Chat() {
   async function load() {
     const { data, error: err } = await supabase
       .from("messages")
-      .select("id, body, created_at, profiles(username)")
+      .select("id, body, created_at, author_id, profiles(username)")
       .order("created_at", { ascending: true })
       .limit(200);
     if (err) setError("Could not load the chat.");
@@ -88,7 +89,7 @@ function Chat() {
 
   return (
     <>
-      <SectionTitle>Community chat</SectionTitle>
+      <SectionTitle>Public chat</SectionTitle>
 
       <div className="panel flex h-[calc(100vh-13rem)] flex-col">
         <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto p-4">
@@ -114,6 +115,21 @@ function Chat() {
                     <span className="text-xs text-muted-foreground">
                       {formatTime(m.created_at)}
                     </span>
+                    {(isAdmin || m.author_id === profile?.id) && (
+                      <button
+                        onClick={async () => {
+                          const { error: err } = await supabase
+                            .from("messages")
+                            .delete()
+                            .eq("id", m.id);
+                          if (err) setError("Could not delete that message.");
+                          await load();
+                        }}
+                        className="ml-auto text-xs text-muted-foreground transition-colors hover:text-destructive"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                   <p className="mt-1 whitespace-pre-wrap text-[15px] leading-relaxed">{m.body}</p>
                 </div>

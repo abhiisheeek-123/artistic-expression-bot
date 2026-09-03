@@ -5,10 +5,17 @@ export type PostRow = {
   id: string;
   body: string;
   created_at: string;
+  author_id?: string;
   profiles: { username: string } | null;
 };
 
-export function PostCard({ post }: { post: PostRow }) {
+export function PostCard({
+  post,
+  onDelete,
+}: {
+  post: PostRow;
+  onDelete?: (id: string) => void;
+}) {
   const username = post.profiles?.username ?? "unknown";
   return (
     <article className="panel p-4">
@@ -21,6 +28,14 @@ export function PostCard({ post }: { post: PostRow }) {
           @{username}
         </Link>
         <span className="text-xs text-muted-foreground">{formatTime(post.created_at)}</span>
+        {onDelete && (
+          <button
+            onClick={() => onDelete(post.id)}
+            className="ml-auto text-xs text-muted-foreground transition-colors hover:text-destructive"
+          >
+            Delete
+          </button>
+        )}
       </div>
       <p className="mt-2 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">
         {post.body}

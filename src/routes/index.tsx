@@ -36,7 +36,7 @@ function FeedPage() {
 }
 
 function Feed() {
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
   const [posts, setPosts] = useState<PostRow[] | null>(null);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +45,7 @@ function Feed() {
   async function load() {
     const { data, error: err } = await supabase
       .from("posts")
-      .select("id, body, created_at, profiles(username)")
+      .select("id, body, created_at, author_id, profiles(username)")
       .order("created_at", { ascending: false })
       .limit(100);
     if (err) setError("Could not load the feed.");
@@ -118,7 +118,21 @@ function Feed() {
         ) : posts.length === 0 ? (
           <p className="text-sm text-muted-foreground">No posts yet. Be the first to write one.</p>
         ) : (
-          posts.map((post) => <PostCard key={post.id} post={post} />)
+          posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onDelete={
+                isAdmin || post.author_id === profile?.id
+                  ? async (id) => {
+                      const { error: err } = await supabase.from("posts").delete().eq("id", id);
+                      if (err) setError("Could not delete that post.");
+                      await load();
+                    }
+                  : undefined
+              }
+            />
+          ))
         )}
       </div>
     </>
