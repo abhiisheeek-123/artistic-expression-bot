@@ -35,7 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
-      if (!next) setProfile(null);
+      if (!next) {
+        setProfile(null);
+        setIsAdmin(false);
+      }
     });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -61,9 +64,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [session?.user.id]);
 
+  useEffect(() => {
+    const userId = session?.user.id;
+    if (!userId) {
+      setIsAdmin(false);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .rpc("has_role", { _user_id: userId, _role: "admin" })
+      .then(({ data }) => {
+        if (!cancelled) setIsAdmin(data === true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user.id]);
+
   const value: AuthValue = {
     session,
     profile,
+    isAdmin,
     loading,
     async signUp(username, password) {
       const clean = normalizeUsername(username);
