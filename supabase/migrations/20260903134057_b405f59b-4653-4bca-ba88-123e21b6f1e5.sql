@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_username_unique_idx
+ON public.profiles (lower(username));
